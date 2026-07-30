@@ -652,7 +652,7 @@ function pintarAdmin(d){
       <p class="aviso" style="margin:6px 0">${p.nombre} · ${p.tel}<br>${p.partido} · <span class="mono">${p.codigos}</span><br>Total <b>${fmt(p.total)}</b></p>
       ${p.comprobante? `<a href="${p.comprobante}" target="_blank" class="aviso warn">Ver comprobante ↗</a>`:'<span class="aviso err">Sin comprobante</span>'}
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-        ${p.estado==='Pendiente'? `<button class="btn btn-dorado" onclick="cambiarEstado(${p.fila},'Pagado')">✓ Marcar Pagado</button>`:''}
+        ${(p.estado==='Pendiente'||p.estado==='Esperando pago')? `<button class="btn btn-dorado" onclick="cambiarEstado(${p.fila},'Pagado')">✓ Marcar Pagado</button>`:''}
         ${p.estado==='Pagado'? `<button class="btn btn-dorado" onclick="entregarWA(${p.fila})">📲 Entregar por WhatsApp</button>
         <button class="btn btn-borde" onclick="entregar(${p.fila})">Link manual</button>`:''}
         ${p.estado==='Entregado' && p.link? `<a class="btn btn-borde" href="${p.link}" target="_blank">Ver carpeta de entrega</a>`:''}
