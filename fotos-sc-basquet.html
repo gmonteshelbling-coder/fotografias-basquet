@@ -67,6 +67,8 @@ td{padding:6px 4px;border-bottom:1px solid var(--humo)}
 .liq{display:flex;gap:10px}
 .liq .card{flex:1;text-align:center;margin:0}
 .liq .num{font-family:'Archivo Black';font-size:19px;margin-top:4px}
+.fp-drop{border:2px dashed var(--humo);border-radius:14px;padding:28px 14px;text-align:center;color:var(--crema);cursor:pointer}
+.fp-drop:active{border-color:var(--dorado)}
 @media(min-width:520px){.grid{grid-template-columns:repeat(3,1fr)}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -142,14 +144,46 @@ td{padding:6px 4px;border-bottom:1px solid var(--humo)}
 <div class="pantalla" id="p-admin">
   <div class="wrap">
     <div class="card" id="adminLogin">
-      <h2>Modo administrador</h2>
+      <h2>Acceso con PIN</h2>
+      <p class="aviso" style="margin-bottom:8px">Administrador o fotógrafo — cada uno con su PIN.</p>
       <label>PIN</label>
       <input id="aPin" type="password" inputmode="numeric" class="mono">
       <button class="btn btn-rojo" style="margin-top:12px" onclick="adminEntrar()">Entrar</button>
     </div>
+
+    <!-- ================= PANEL FOTÓGRAFO ================= -->
+    <div id="fotoPanel" style="display:none">
+      <div class="card">
+        <h2>📷 Panel del fotógrafo</h2>
+        <label>Partido</label>
+        <select id="fpPartido"><option value="">Cargando…</option></select>
+        <label style="margin-top:12px">¿Partido nuevo? Crealo acá</label>
+        <div style="display:flex;gap:8px">
+          <input id="fpNuevo" placeholder="Ej: U15 vs Ferro 02-08" style="flex:1">
+          <button class="btn btn-borde" style="width:auto;padding:12px 16px;margin:0" onclick="fpCrearPartido()">Crear</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Fotos</h2>
+        <div class="fp-drop" id="fpDrop" onclick="document.getElementById('fpInp').click()">
+          <b>Tocá acá</b> para elegir las fotos del partido<br>
+          <span style="font-size:12px;color:var(--gris)">La marca de agua se pone sola y se suben directo a la app. Las HEIC del iPhone se convierten automáticamente.</span>
+        </div>
+        <input type="file" id="fpInp" accept="image/*" multiple style="display:none">
+        <p class="aviso" id="fpCuenta" style="margin-top:10px"></p>
+        <label>Texto de la marca</label>
+        <input id="fpTexto" value="SC BÁSQUET">
+        <button class="btn btn-rojo" id="fpGo" onclick="fpProcesar()" disabled>Marcar y subir</button>
+        <progress id="fpProg" value="0" max="100" style="display:none;width:100%;margin-top:10px;accent-color:var(--dorado)"></progress>
+        <p class="aviso" id="fpEstado" style="margin-top:8px"></p>
+        <div class="grid" id="fpPreview" style="margin-top:10px"></div>
+      </div>
+    </div>
+
     <div id="adminPanel" style="display:none">
       <div style="display:flex;gap:8px;margin-bottom:14px">
         <button class="btn btn-borde" id="atab-pedidos" onclick="adminTab('pedidos')" style="border-color:var(--dorado);color:var(--dorado)">Pedidos</button>
+        <button class="btn btn-borde" id="atab-contable" onclick="adminTab('contable')">Contable</button>
         <button class="btn btn-borde" id="atab-partidos" onclick="adminTab('partidos')">Partidos</button>
         <button class="btn btn-borde" id="atab-config" onclick="adminTab('config')">Config</button>
       </div>
@@ -162,6 +196,27 @@ td{padding:6px 4px;border-bottom:1px solid var(--humo)}
         </div>
         <p class="aviso" style="margin-bottom:10px">Liquidación sobre pedidos <b>Pagados</b> y <b>Entregados</b>.</p>
         <div id="adminLista"></div>
+      </div>
+
+      <!-- SUB: CONTABLE -->
+      <div id="asec-contable" style="display:none">
+        <div class="liq" style="margin-bottom:14px">
+          <div class="card"><div class="aviso">Fotos vendidas</div><div class="num" style="color:var(--crema)" id="ctFotos">0</div></div>
+          <div class="card"><div class="aviso">Recaudado</div><div class="num" style="color:var(--dorado)" id="ctTotal">$0</div></div>
+        </div>
+        <div class="liq" style="margin-bottom:14px">
+          <div class="card"><div class="aviso">SC Básquet</div><div class="num ok" id="ctClub">$0</div></div>
+          <div class="card"><div class="aviso">Fotógrafo</div><div class="num warn" id="ctFotografo">$0</div></div>
+        </div>
+        <p class="aviso" style="margin-bottom:12px">Solo cuenta pedidos <b>Pagados</b> y <b>Entregados</b>. Los pendientes no entran hasta que confirmes el pago.</p>
+        <div class="card">
+          <h2>Por mes</h2>
+          <div id="ctMeses"></div>
+        </div>
+        <div class="card">
+          <h2>Por partido</h2>
+          <div id="ctPartidos"></div>
+        </div>
       </div>
 
       <!-- SUB: PARTIDOS -->
@@ -202,6 +257,8 @@ td{padding:6px 4px;border-bottom:1px solid var(--humo)}
         <div class="card">
           <h2>Seguridad</h2>
           <label>PIN de administrador</label><input id="cfPin" class="mono">
+          <label>PIN del fotógrafo</label><input id="cfPinFoto" class="mono" placeholder="Ej: 5678">
+          <p class="aviso" style="margin-top:6px">Con su PIN, el fotógrafo entra por la misma pestaña Acceso y ve solo su panel de carga de fotos.</p>
         </div>
 
         <button class="btn btn-dorado" style="margin-top:14px" onclick="guardarConfig()">Guardar todos los cambios</button>
@@ -219,7 +276,7 @@ td{padding:6px 4px;border-bottom:1px solid var(--humo)}
   <button id="nav-galeria" class="on" onclick="ir('galeria')"><span class="ico">📷</span>Fotos</button>
   <button id="nav-pedido" onclick="ir('pedido')"><span class="ico">🛒<span class="badge" id="navBadge" style="display:none">0</span></span>Pedido</button>
   <button id="nav-consultar" onclick="ir('consultar')"><span class="ico">🔎</span>Seguimiento</button>
-  <button id="nav-admin" onclick="ir('admin')"><span class="ico">🔐</span>Admin</button>
+  <button id="nav-admin" onclick="ir('admin')"><span class="ico">🔐</span>Acceso</button>
 </nav>
 
 <script>
@@ -405,12 +462,124 @@ async function consultar(){
 /* ---------- admin ---------- */
 async function adminEntrar(){
   adminPin = $('aPin').value;
-  const d = await apiPost({action:'admin', pin:adminPin, op:'listar'});
-  if(!d.ok) return alert(d.error||'PIN incorrecto');
-  $('adminLogin').style.display='none'; $('adminPanel').style.display='block';
-  pintarAdmin(d);
+  const l = await apiPost({action:'login', pin:adminPin});
+  if(!l.ok) return alert(l.error||'PIN incorrecto');
+  $('adminLogin').style.display='none';
+  if(l.rol === 'fotografo'){
+    $('fotoPanel').style.display='block';
+    fpCargarPartidos();
+    fpInit();
+  } else {
+    $('adminPanel').style.display='block';
+    const d = await apiPost({action:'admin', pin:adminPin, op:'listar'});
+    if(d.ok) pintarAdmin(d);
+  }
+}
+
+/* ---------- panel fotógrafo ---------- */
+let fpArchivos = [];
+let fpListo = false;
+function fpInit(){
+  if(fpListo) return; fpListo = true;
+  $('fpInp').addEventListener('change', e=>{
+    fpArchivos = [...e.target.files];
+    $('fpCuenta').innerHTML = fpArchivos.length ? `<span class="ok">✓ ${fpArchivos.length} foto${fpArchivos.length>1?'s':''} seleccionada${fpArchivos.length>1?'s':''}</span>` : '';
+    $('fpGo').disabled = !fpArchivos.length;
+  });
+}
+async function fpCargarPartidos(){
+  const d = await apiPost({action:'fotografo', pin:adminPin, op:'listpartidos'});
+  if(!d.ok) return alert(d.error||'Error');
+  $('fpPartido').innerHTML = '<option value="">— Elegí el partido —</option>' +
+    d.partidos.map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('');
+}
+async function fpCrearPartido(){
+  const nombre = $('fpNuevo').value.trim();
+  if(!nombre) return alert('Poné el nombre del partido.');
+  const d = await apiPost({action:'fotografo', pin:adminPin, op:'crearpartido', nombre});
+  if(!d.ok) return alert(d.error||'Error');
+  $('fpNuevo').value = '';
+  await fpCargarPartidos();
+  $('fpPartido').value = d.id;
+  alert('✅ Partido creado. Ya está seleccionado — ahora elegí las fotos.');
+}
+function fpCargarImagen(file){
+  return new Promise((res, rej)=>{
+    const img = new Image();
+    img.onload = ()=>{ URL.revokeObjectURL(img.src); res(img); };
+    img.onerror = ()=>rej(new Error('formato no soportado'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+function fpMarcar(img, texto){
+  const c = document.createElement('canvas');
+  const escala = Math.min(1, 2000 / Math.max(img.width, img.height));
+  c.width = Math.round(img.width * escala);
+  c.height = Math.round(img.height * escala);
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+  const fs = Math.round(Math.min(c.width, c.height) * 0.06);
+  ctx.font = '700 ' + fs + 'px Arial';
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+  ctx.lineWidth = Math.max(1, fs/28);
+  ctx.textAlign = 'center';
+  ctx.save();
+  ctx.translate(c.width/2, c.height/2);
+  ctx.rotate(-Math.PI/6);
+  const paso = fs * 3.2;
+  const ancho = ctx.measureText(texto).width + fs*2;
+  for(let y=-c.height; y<c.height; y+=paso){
+    const off = (Math.round(y/paso)%2) ? ancho/2 : 0;
+    for(let x=-c.width; x<c.width; x+=ancho){
+      ctx.strokeText(texto, x+off, y);
+      ctx.fillText(texto, x+off, y);
+    }
+  }
+  ctx.restore();
+  return new Promise(res=>c.toBlob(res, 'image/jpeg', 0.85));
+}
+function fpBlobABase64(blob){
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(blob);
+  });
+}
+async function fpProcesar(){
+  const folderId = $('fpPartido').value;
+  if(!folderId) return alert('Elegí (o creá) el partido primero.');
+  if(!fpArchivos.length) return alert('Elegí las fotos.');
+  const texto = $('fpTexto').value.trim() || 'SC BÁSQUET';
+  $('fpGo').disabled = true; $('fpProg').style.display='block'; $('fpPreview').innerHTML='';
+  let subidas = 0, errores = 0;
+  for(let i=0; i<fpArchivos.length; i++){
+    $('fpEstado').textContent = `Subiendo ${i+1} de ${fpArchivos.length}…`;
+    $('fpProg').value = (i/fpArchivos.length)*100;
+    try{
+      const img = await fpCargarImagen(fpArchivos[i]);
+      const blob = await fpMarcar(img, texto);
+      const b64 = await fpBlobABase64(blob);
+      const nombre = fpArchivos[i].name.replace(/\.[^.]+$/, '') + '.jpg';
+      const d = await apiPost({action:'fotografo', pin:adminPin, op:'subirfoto', folderId, nombre, base64:b64, mime:'image/jpeg'});
+      if(d.ok){
+        subidas++;
+        const th = document.createElement('img');
+        th.src = URL.createObjectURL(blob);
+        $('fpPreview').appendChild(th);
+      } else errores++;
+    }catch(e){ errores++; console.error(e); }
+  }
+  $('fpProg').value = 100;
+  $('fpEstado').innerHTML = `<span class="ok">✓ ${subidas} foto${subidas!==1?'s':''} subida${subidas!==1?'s':''} al partido.</span>` +
+    (errores ? ` <span style="color:#FF6B6B">${errores} con error — reintentá esas.</span>` : ' Ya se ven en la galería 🏀');
+  fpArchivos = []; $('fpInp').value=''; $('fpCuenta').textContent='';
+  $('fpGo').disabled = true;
 }
 function pintarAdmin(d){
+  ultimosPedidos = d.pedidos;
+  ultimoPorcClub = d.porcentajeClub;
   const pc = d.porcentajeClub;
   let club=0, foto=0;
   const filas = d.pedidos.slice().reverse().map(p=>{
@@ -443,14 +612,66 @@ function entregar(fila){
 
 /* ---------- admin: tabs ---------- */
 function adminTab(t){
-  ['pedidos','partidos','config'].forEach(x=>{
+  ['pedidos','contable','partidos','config'].forEach(x=>{
     $('asec-'+x).style.display = x===t ? 'block' : 'none';
     const b = $('atab-'+x);
     b.style.borderColor = x===t ? 'var(--dorado)' : 'var(--humo)';
     b.style.color = x===t ? 'var(--dorado)' : 'var(--crema)';
   });
+  if(t==='contable') pintarContable();
   if(t==='partidos') listarPartidos();
   if(t==='config') cargarConfig();
+}
+
+/* ---------- admin: contable ---------- */
+let ultimosPedidos = [];
+let ultimoPorcClub = 30;
+const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+function pintarContable(){
+  const pagados = ultimosPedidos.filter(p=>p.estado==='Pagado'||p.estado==='Entregado');
+  const pc = ultimoPorcClub;
+  let fotos=0, total=0, club=0;
+  const porMes = {}, porPartido = {};
+  pagados.forEach(p=>{
+    const cant = Number(p.cant)||0, monto = Number(p.total)||0;
+    const mc = Math.round(monto*pc/100);
+    fotos += cant; total += monto; club += mc;
+    const f = new Date(p.fecha);
+    const kMes = f.getFullYear() + '-' + ('0'+(f.getMonth()+1)).slice(-2);
+    if(!porMes[kMes]) porMes[kMes] = {label: MESES_ES[f.getMonth()] + ' ' + f.getFullYear(), fotos:0, total:0, club:0};
+    porMes[kMes].fotos += cant; porMes[kMes].total += monto; porMes[kMes].club += mc;
+    const kP = p.partido || 'Sin partido';
+    if(!porPartido[kP]) porPartido[kP] = {fotos:0, total:0};
+    porPartido[kP].fotos += cant; porPartido[kP].total += monto;
+  });
+  $('ctFotos').textContent = fotos;
+  $('ctTotal').textContent = fmt(total);
+  $('ctClub').textContent = fmt(club);
+  $('ctFotografo').textContent = fmt(total - club);
+
+  const filaTabla = (c1,c2,c3,c4)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--humo);font-size:13px">
+    <span style="flex:1">${c1}</span><span class="mono">${c2}</span><span class="mono ok">${c3}</span><span class="mono warn">${c4}</span></div>`;
+
+  const mesesKeys = Object.keys(porMes).sort().reverse();
+  $('ctMeses').innerHTML = mesesKeys.length
+    ? `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:11px;color:var(--gris);text-transform:uppercase;font-weight:700">
+        <span style="flex:1">Mes</span><span>Fotos</span><span>Club</span><span>Fotógr.</span></div>` +
+      mesesKeys.map(k=>{
+        const m = porMes[k];
+        return filaTabla(m.label, m.fotos, fmt(m.club), fmt(m.total - m.club));
+      }).join('')
+    : '<p class="aviso">Todavía no hay ventas confirmadas.</p>';
+
+  const partKeys = Object.keys(porPartido).sort((a,b)=>porPartido[b].total - porPartido[a].total);
+  $('ctPartidos').innerHTML = partKeys.length
+    ? `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:11px;color:var(--gris);text-transform:uppercase;font-weight:700">
+        <span style="flex:1">Partido</span><span>Fotos</span><span style="color:var(--gris)">Total</span></div>` +
+      partKeys.map(k=>{
+        const p = porPartido[k];
+        return `<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--humo);font-size:13px">
+          <span style="flex:1">${k}</span><span class="mono">${p.fotos}</span><span class="mono" style="color:var(--dorado)">${fmt(p.total)}</span></div>`;
+      }).join('')
+    : '<p class="aviso">Todavía no hay ventas confirmadas.</p>';
 }
 
 /* ---------- admin: partidos ---------- */
@@ -503,6 +724,7 @@ async function cargarConfig(){
   $('cfTitular').value = c.TITULAR_MP; $('cfPrecio').value = c.PRECIO_FOTO;
   $('cfPack').value = c.PRECIO_PACK3; $('cfPorc').value = c.PORCENTAJE_CLUB;
   $('cfPin').value = c.PIN_ADMIN;
+  $('cfPinFoto').value = c.PIN_FOTOGRAFO || '';
 }
 async function guardarConfig(){
   const config = {
@@ -513,7 +735,8 @@ async function guardarConfig(){
     PRECIO_FOTO: Number($('cfPrecio').value),
     PRECIO_PACK3: Number($('cfPack').value),
     PORCENTAJE_CLUB: Number($('cfPorc').value),
-    PIN_ADMIN: $('cfPin').value.trim()
+    PIN_ADMIN: $('cfPin').value.trim(),
+    PIN_FOTOGRAFO: $('cfPinFoto').value.trim()
   };
   if(config.PORCENTAJE_CLUB<0 || config.PORCENTAJE_CLUB>100) return alert('El porcentaje tiene que estar entre 0 y 100.');
   const d = await apiPost({action:'admin', pin:adminPin, op:'setconfig', config});
