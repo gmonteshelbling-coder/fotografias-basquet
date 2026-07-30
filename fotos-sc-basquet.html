@@ -674,8 +674,10 @@ function entregar(fila){
 }
 async function entregarWA(fila){
   if(!confirm('Se arma la carpeta con las fotos en alta calidad y se abre WhatsApp con el mensaje listo. ¿Entregar?')) return;
+  // Abrir la ventana YA (en el gesto del usuario) para que el navegador no la bloquee
+  const ventana = window.open('', '_blank');
   const d = await apiPost({action:'admin', pin:adminPin, op:'entregar', fila});
-  if(!d.ok) return alert(d.error||'Error al armar la entrega');
+  if(!d.ok){ if(ventana) ventana.close(); return alert(d.error||'Error al armar la entrega'); }
   if(d.faltantes > 0){
     alert('⚠️ Ojo: ' + d.faltantes + ' foto(s) no tenían original en la bóveda (fotos subidas con el sistema viejo). Para esas se entregó la versión con marca — pedile las originales al fotógrafo.');
   }
@@ -684,7 +686,9 @@ async function entregarWA(fila){
   const msg = encodeURIComponent(
     `¡Hola ${d.nombre}! 🏀📸\n\nAcá están tus fotos del partido en alta calidad, sin marca de agua:\n\n${d.url}\n\nCódigos: ${d.codigos}\n\n¡Gracias por tu compra! — SC Básquet, Club Independiente de Tandil`
   );
-  window.open('https://wa.me/' + tel + '?text=' + msg, '_blank');
+  const urlWA = 'https://wa.me/' + tel + '?text=' + msg;
+  if(ventana && !ventana.closed){ ventana.location = urlWA; }
+  else { window.location.href = urlWA; }
   const l = await apiPost({action:'admin', pin:adminPin, op:'listar'});
   if(l.ok) pintarAdmin(l);
 }
