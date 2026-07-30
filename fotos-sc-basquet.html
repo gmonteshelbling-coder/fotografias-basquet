@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Fotos · SC Básquet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --negro:#171315; --carbon:#221C1F; --humo:#2E262A;
+  --rojo:#D31A2B; --dorado:#E0A526; --crema:#F5EFE6; --gris:#9C9297;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{background:var(--negro);color:var(--crema);font-family:'Inter',sans-serif;font-size:15px;padding-bottom:86px;min-height:100vh}
+h1,h2,.display{font-family:'Archivo Black',sans-serif;letter-spacing:.5px}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* Header */
+header{background:linear-gradient(105deg,var(--rojo) 0 46%,var(--negro) 46.5% 100%);padding:20px 18px 16px;border-bottom:3px solid var(--dorado)}
+header h1{font-size:21px;line-height:1.1;text-transform:uppercase}
+header p{font-size:11px;color:var(--dorado);letter-spacing:2px;text-transform:uppercase;margin-top:4px;font-weight:600}
+
+.wrap{padding:16px;max-width:640px;margin:0 auto}
+.card{background:var(--carbon);border:1px solid var(--humo);border-radius:14px;padding:16px;margin-bottom:14px}
+.card h2{font-size:15px;text-transform:uppercase;color:var(--dorado);margin-bottom:12px}
+label{display:block;font-size:12px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:1px;margin:10px 0 5px}
+input,select,textarea{width:100%;background:var(--negro);border:1.5px solid var(--humo);border-radius:10px;color:var(--crema);padding:12px;font-size:16px;font-family:'Inter'}
+input:focus,select:focus{outline:2px solid var(--dorado);border-color:var(--dorado)}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter';text-align:center;text-decoration:none}
+.btn-rojo{background:var(--rojo);color:#fff}
+.btn-dorado{background:var(--dorado);color:var(--negro)}
+.btn-borde{background:transparent;border:1.5px solid var(--humo);color:var(--crema)}
+.btn:active{transform:scale(.98)}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.chip{display:inline-block;background:var(--humo);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:600;margin:2px}
+.aviso{font-size:13px;color:var(--gris);line-height:1.5}
+.ok{color:#5FBF77}.warn{color:var(--dorado)}.err{color:#FF6B6B}
+
+/* Galería */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.foto{position:relative;border-radius:12px;overflow:hidden;border:2px solid var(--humo);aspect-ratio:1;background:var(--carbon);cursor:pointer}
+.foto img{width:100%;height:100%;object-fit:cover;display:block}
+.foto .cod{position:absolute;left:0;bottom:0;right:0;background:linear-gradient(transparent,rgba(23,19,21,.92) 40%);padding:16px 8px 6px;font-size:12px;color:var(--dorado)}
+.foto.sel{border-color:var(--dorado)}
+.foto.sel::after{content:'✓';position:absolute;top:6px;right:6px;width:26px;height:26px;background:var(--dorado);color:var(--negro);border-radius:99px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+
+/* Nav inferior */
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--carbon);border-top:2px solid var(--rojo);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:0;color:var(--gris);padding:10px 4px 12px;font-size:11px;font-weight:700;font-family:'Inter';cursor:pointer;text-transform:uppercase;letter-spacing:.5px}
+nav button.on{color:var(--dorado)}
+nav .ico{display:block;font-size:19px;margin-bottom:3px}
+.badge{position:absolute;transform:translate(14px,-4px);background:var(--rojo);color:#fff;border-radius:99px;font-size:10px;min-width:17px;height:17px;line-height:17px;display:inline-block}
+
+.pantalla{display:none}.pantalla.on{display:block}
+.total-bar{position:fixed;left:0;right:0;bottom:64px;background:var(--dorado);color:var(--negro);padding:12px 18px;display:none;justify-content:space-between;align-items:center;font-weight:800;z-index:49;cursor:pointer}
+.total-bar.on{display:flex}
+.spinner{border:3px solid var(--humo);border-top-color:var(--dorado);border-radius:99px;width:34px;height:34px;margin:30px auto;animation:g .8s linear infinite}
+@keyframes g{to{transform:rotate(360deg)}}
+.estado-pill{display:inline-block;padding:5px 12px;border-radius:99px;font-size:12px;font-weight:800;text-transform:uppercase}
+.e-Pendiente{background:#4a3a10;color:var(--dorado)}
+.e-Pagado{background:#14381f;color:#5FBF77}
+.e-Entregado{background:#15303f;color:#6BB8FF}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td{padding:6px 4px;border-bottom:1px solid var(--humo)}
+.liq{display:flex;gap:10px}
+.liq .card{flex:1;text-align:center;margin:0}
+.liq .num{font-family:'Archivo Black';font-size:19px;margin-top:4px}
+@media(min-width:520px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Fotos de Partido</h1>
+  <p>SC Básquet · Club Independiente de Tandil</p>
+</header>
+
+<!-- ================= GALERÍA ================= -->
+<div class="pantalla on" id="p-galeria">
+  <div class="wrap">
+    <div class="card">
+      <label>Elegí el partido</label>
+      <select id="selPartido" onchange="cargarFotos()"><option value="">Cargando partidos…</option></select>
+      <p class="aviso" style="margin-top:10px">Tocá las fotos que quieras encargar. Las imágenes tienen marca de agua: la foto final te llega limpia y en alta calidad.</p>
+      <p class="aviso" id="precios" style="margin-top:6px"></p>
+    </div>
+    <div id="galeria" class="grid"></div>
+    <div id="galVacia" class="aviso" style="text-align:center;padding:30px 10px;display:none">Todavía no hay fotos cargadas para este partido.</div>
+  </div>
+</div>
+
+<!-- ================= PEDIDO ================= -->
+<div class="pantalla" id="p-pedido">
+  <div class="wrap">
+    <div class="card">
+      <h2>Tu selección</h2>
+      <div id="listaSel"></div>
+      <p style="margin-top:10px;font-weight:800;font-size:17px">Total: <span id="totalTxt" class="mono" style="color:var(--dorado)"></span></p>
+      <p class="aviso" id="packAviso"></p>
+    </div>
+    <div class="card">
+      <h2>1 · Transferí por Mercado Pago</h2>
+      <p class="aviso">Alias:</p>
+      <p class="mono" style="font-size:18px;color:var(--dorado);margin:6px 0" id="aliasTxt"></p>
+      <p class="aviso" id="titularTxt"></p>
+      <button class="btn btn-borde" style="margin-top:10px" onclick="copiarAlias()">Copiar alias</button>
+    </div>
+    <div class="card">
+      <h2>2 · Completá tus datos</h2>
+      <label>Nombre y apellido</label><input id="fNombre" placeholder="Ej: Juan Pedro García">
+      <label>Teléfono (WhatsApp)</label><input id="fTel" type="tel" placeholder="Ej: 249 4 123456">
+      <label>Comprobante de la transferencia</label>
+      <input id="fComp" type="file" accept="image/*">
+    </div>
+    <button class="btn btn-rojo" id="btnEnviar" onclick="enviarPedido()">Confirmar pedido</button>
+    <p class="aviso" style="margin-top:10px;text-align:center">Al confirmar te damos un número de pedido para seguir el estado.</p>
+  </div>
+</div>
+
+<!-- ================= CONSULTAR ================= -->
+<div class="pantalla" id="p-consultar">
+  <div class="wrap">
+    <div class="card">
+      <h2>Seguí tu pedido</h2>
+      <label>Número de pedido</label>
+      <input id="cId" placeholder="Ej: P-A3F9K2" class="mono" style="text-transform:uppercase">
+      <button class="btn btn-dorado" style="margin-top:12px" onclick="consultar()">Consultar</button>
+    </div>
+    <div id="cResultado"></div>
+  </div>
+</div>
+
+<!-- ================= ADMIN ================= -->
+<div class="pantalla" id="p-admin">
+  <div class="wrap">
+    <div class="card" id="adminLogin">
+      <h2>Modo administrador</h2>
+      <label>PIN</label>
+      <input id="aPin" type="password" inputmode="numeric" class="mono">
+      <button class="btn btn-rojo" style="margin-top:12px" onclick="adminEntrar()">Entrar</button>
+    </div>
+    <div id="adminPanel" style="display:none">
+      <div class="liq" style="margin-bottom:14px">
+        <div class="card"><div class="aviso">SC Básquet</div><div class="num ok" id="liqClub">$0</div></div>
+        <div class="card"><div class="aviso">Fotógrafo</div><div class="num warn" id="liqFoto">$0</div></div>
+      </div>
+      <p class="aviso" style="margin-bottom:10px">Liquidación sobre pedidos <b>Pagados</b> y <b>Entregados</b>.</p>
+      <div id="adminLista"></div>
+    </div>
+  </div>
+</div>
+
+<div class="total-bar" id="totalBar" onclick="ir('pedido')">
+  <span id="tbTxt"></span><span>Ver pedido →</span>
+</div>
+
+<nav>
+  <button id="nav-galeria" class="on" onclick="ir('galeria')"><span class="ico">📷</span>Fotos</button>
+  <button id="nav-pedido" onclick="ir('pedido')"><span class="ico">🛒<span class="badge" id="navBadge" style="display:none">0</span></span>Pedido</button>
+  <button id="nav-consultar" onclick="ir('consultar')"><span class="ico">🔎</span>Seguimiento</button>
+  <button id="nav-admin" onclick="ir('admin')"><span class="ico">🔐</span>Admin</button>
+</nav>
+
+<script>
+/* ⬇️ PEGÁ ACÁ LA URL DE TU APP WEB DE APPS SCRIPT (termina en /exec) */
+const API_URL = 'https://script.google.com/macros/s/AKfycbxOoLrOf7cqNFcJKnJk4umSjc1JwhoJ77BFQmfXnAg2k0AoHuqh5KRDRaZ045QMU25N/exec';
+
+let CFG = {precioFoto:0, precioPack3:0, aliasMP:'', titularMP:'', partidos:[]};
+let seleccion = [];   // {id, codigo, partido}
+let adminPin = '';
+
+/* ---------- utils ---------- */
+const $ = id => document.getElementById(id);
+const fmt = n => '$' + Number(n).toLocaleString('es-AR');
+async function apiGet(params){
+  const r = await fetch(API_URL + '?' + new URLSearchParams(params));
+  return r.json();
+}
+async function apiPost(body){
+  const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(body)});
+  return r.json();
+}
+function ir(p){
+  document.querySelectorAll('.pantalla').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
+  $('p-'+p).classList.add('on'); $('nav-'+p).classList.add('on');
+  if(p==='pedido') pintarPedido();
+  window.scrollTo(0,0);
+}
+
+/* ---------- init ---------- */
+(async function(){
+  try{
+    const d = await apiGet({action:'init'});
+    CFG = d;
+    $('selPartido').innerHTML = '<option value="">— Elegí un partido —</option>' +
+      d.partidos.map(p=>`<option value="${p.id}" data-nombre="${p.nombre}">${p.nombre}</option>`).join('');
+    $('precios').innerHTML = `Precio: <b>${fmt(d.precioFoto)}</b> por foto · Pack 3 fotos: <b>${fmt(d.precioPack3)}</b>`;
+    $('aliasTxt').textContent = d.aliasMP;
+    $('titularTxt').textContent = 'Titular: ' + d.titularMP;
+  }catch(e){
+    $('selPartido').innerHTML = '<option>Error de conexión. Revisá la URL de la API.</option>';
+  }
+})();
+
+/* ---------- galería ---------- */
+async function cargarFotos(){
+  const sel = $('selPartido');
+  const folder = sel.value;
+  $('galeria').innerHTML = ''; $('galVacia').style.display='none';
+  if(!folder) return;
+  $('galeria').innerHTML = '<div class="spinner" style="grid-column:1/-1"></div>';
+  const d = await apiGet({action:'fotos', folder});
+  const nombrePartido = sel.selectedOptions[0].dataset.nombre;
+  if(!d.fotos || !d.fotos.length){ $('galeria').innerHTML=''; $('galVacia').style.display='block'; return; }
+  $('galeria').innerHTML = d.fotos.map(f=>`
+    <div class="foto ${estaSel(f.id)?'sel':''}" id="f-${f.id}" onclick="toggleFoto('${f.id}','${f.codigo}','${nombrePartido.replace(/'/g,"\\'")}')">
+      <img loading="lazy" src="https://drive.google.com/thumbnail?id=${f.id}&sz=w400" alt="Foto ${f.codigo}">
+      <div class="cod mono">${f.codigo}</div>
+    </div>`).join('');
+}
+function estaSel(id){ return seleccion.some(s=>s.id===id); }
+function toggleFoto(id,codigo,partido){
+  const i = seleccion.findIndex(s=>s.id===id);
+  if(i>=0) seleccion.splice(i,1); else seleccion.push({id,codigo,partido});
+  const el = $('f-'+id); if(el) el.classList.toggle('sel', i<0);
+  actualizarBadge();
+}
+function calcTotal(){
+  const n = seleccion.length;
+  const packs = Math.floor(n/3), sueltas = n%3;
+  return packs*CFG.precioPack3 + sueltas*CFG.precioFoto;
+}
+function actualizarBadge(){
+  const n = seleccion.length;
+  $('navBadge').style.display = n? 'inline-block':'none';
+  $('navBadge').textContent = n;
+  $('totalBar').classList.toggle('on', n>0);
+  $('tbTxt').textContent = n + (n===1?' foto · ':' fotos · ') + fmt(calcTotal());
+}
+
+/* ---------- pedido ---------- */
+function pintarPedido(){
+  if(!seleccion.length){
+    $('listaSel').innerHTML = '<p class="aviso">Todavía no elegiste fotos. Volvé a la galería y tocá las que quieras.</p>';
+    $('totalTxt').textContent = fmt(0); $('packAviso').textContent=''; return;
+  }
+  $('listaSel').innerHTML = seleccion.map(s=>`<span class="chip mono">${s.codigo} ✕</span>`).join('');
+  document.querySelectorAll('#listaSel .chip').forEach((c,i)=>c.onclick=()=>{ seleccion.splice(i,1); actualizarBadge(); pintarPedido(); cargarFotos(); });
+  $('totalTxt').textContent = fmt(calcTotal());
+  const falta = 3 - (seleccion.length % 3);
+  $('packAviso').textContent = (seleccion.length%3!==0 && falta<3) ? `💡 Agregando ${falta} foto${falta>1?'s':''} más entrás al precio de pack.` : '';
+}
+function copiarAlias(){
+  navigator.clipboard.writeText(CFG.aliasMP).then(()=>alert('Alias copiado: '+CFG.aliasMP));
+}
+function leerArchivo(file){
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+async function enviarPedido(){
+  const nombre = $('fNombre').value.trim(), tel = $('fTel').value.trim();
+  const file = $('fComp').files[0];
+  if(!seleccion.length) return alert('Elegí al menos una foto en la galería.');
+  if(!nombre || !tel) return alert('Completá tu nombre y teléfono.');
+  if(!file) return alert('Subí la captura del comprobante de la transferencia.');
+  $('btnEnviar').disabled = true; $('btnEnviar').textContent = 'Enviando…';
+  try{
+    const b64 = await leerArchivo(file);
+    const d = await apiPost({
+      action:'pedido', nombre, telefono:tel,
+      partido: seleccion[0].partido,
+      codigos: seleccion.map(s=>s.codigo),
+      total: calcTotal(),
+      comprobanteBase64: b64, comprobanteMime: file.type
+    });
+    if(d.ok){
+      alert('✅ ¡Pedido enviado!\n\nTu número de pedido es: ' + d.pedidoId + '\n\nGuardalo para seguir el estado desde la pestaña Seguimiento.');
+      seleccion = []; actualizarBadge();
+      $('fNombre').value=''; $('fTel').value=''; $('fComp').value='';
+      $('cId').value = d.pedidoId; ir('consultar'); consultar();
+    } else alert('Hubo un problema: ' + (d.error||'reintentá en un rato.'));
+  }catch(e){ alert('Error de conexión. Verificá tu internet y reintentá.'); }
+  $('btnEnviar').disabled = false; $('btnEnviar').textContent = 'Confirmar pedido';
+}
+
+/* ---------- consultar ---------- */
+async function consultar(){
+  const id = $('cId').value.trim();
+  if(!id) return;
+  $('cResultado').innerHTML = '<div class="spinner"></div>';
+  const d = await apiGet({action:'consultar', id});
+  if(!d.ok){ $('cResultado').innerHTML = `<div class="card"><p class="err">${d.error}</p></div>`; return; }
+  const p = d.pedido;
+  $('cResultado').innerHTML = `
+    <div class="card">
+      <h2>Pedido ${p.id}</h2>
+      <p style="margin-bottom:8px"><span class="estado-pill e-${p.estado}">${p.estado}</span></p>
+      <p class="aviso"><b>${p.nombre}</b> · ${p.partido}</p>
+      <p class="aviso">Fotos: <span class="mono">${p.codigos}</span></p>
+      <p class="aviso">Total: <b>${fmt(p.total)}</b></p>
+      ${p.estado==='Pendiente' ? '<p class="aviso warn" style="margin-top:8px">Estamos verificando tu pago.</p>':''}
+      ${p.estado==='Pagado' ? '<p class="aviso ok" style="margin-top:8px">Pago confirmado. El fotógrafo está preparando tus fotos.</p>':''}
+      ${p.estado==='Entregado' && p.link ? `<a class="btn btn-dorado" style="margin-top:12px" href="${p.link}" target="_blank">⬇️ Descargar tus fotos</a>`:''}
+    </div>`;
+}
+
+/* ---------- admin ---------- */
+async function adminEntrar(){
+  adminPin = $('aPin').value;
+  const d = await apiPost({action:'admin', pin:adminPin, op:'listar'});
+  if(!d.ok) return alert(d.error||'PIN incorrecto');
+  $('adminLogin').style.display='none'; $('adminPanel').style.display='block';
+  pintarAdmin(d);
+}
+function pintarAdmin(d){
+  const pc = d.porcentajeClub;
+  let club=0, foto=0;
+  const filas = d.pedidos.slice().reverse().map(p=>{
+    if(p.estado==='Pagado'||p.estado==='Entregado'){
+      const mc = Math.round(p.total*pc/100); club+=mc; foto+=(p.total-mc);
+    }
+    return `<div class="card">
+      <p><b class="mono">${p.id}</b> · <span class="estado-pill e-${p.estado}">${p.estado}</span></p>
+      <p class="aviso" style="margin:6px 0">${p.nombre} · ${p.tel}<br>${p.partido} · <span class="mono">${p.codigos}</span><br>Total <b>${fmt(p.total)}</b></p>
+      ${p.comprobante? `<a href="${p.comprobante}" target="_blank" class="aviso warn">Ver comprobante ↗</a>`:'<span class="aviso err">Sin comprobante</span>'}
+      <div style="display:flex;gap:8px;margin-top:10px">
+        ${p.estado==='Pendiente'? `<button class="btn btn-dorado" onclick="cambiarEstado(${p.fila},'Pagado')">✓ Marcar Pagado</button>`:''}
+        ${p.estado==='Pagado'? `<button class="btn btn-borde" onclick="entregar(${p.fila})">📦 Entregar (link)</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  $('liqClub').textContent = fmt(club);
+  $('liqFoto').textContent = fmt(foto);
+  $('adminLista').innerHTML = filas || '<p class="aviso">Todavía no hay pedidos.</p>';
+}
+async function cambiarEstado(fila, estado, link){
+  const d = await apiPost({action:'admin', pin:adminPin, op:'estado', fila, estado, link});
+  if(d.ok){ const l = await apiPost({action:'admin', pin:adminPin, op:'listar'}); pintarAdmin(l); }
+  else alert(d.error||'Error');
+}
+function entregar(fila){
+  const link = prompt('Pegá el link de Drive con las fotos SIN marca de agua para este pedido:');
+  if(link) cambiarEstado(fila, 'Entregado', link);
+}
+</script>
+</body>
+</html>
