@@ -200,7 +200,7 @@ progress{border-radius:99px;overflow:hidden}
         <h2>Fotos</h2>
         <div class="fp-drop" id="fpDrop" onclick="document.getElementById('fpInp').click()">
           <b>Tocá acá</b> para elegir las fotos del partido<br>
-          <span style="font-size:12px;color:var(--gris)">La marca de agua se pone sola y se suben directo a la app. Las HEIC del iPhone se convierten automáticamente.</span>
+          <span style="font-size:12px;color:var(--gris)">Subilas tal cual salen de la cámara, SIN marca de agua. El sistema les pone la marca para la galería y guarda las originales en alta para la entrega.</span>
         </div>
         <input type="file" id="fpInp" accept="image/*" multiple style="display:none">
         <p class="aviso" id="fpCuenta" style="margin-top:10px"></p>
@@ -545,32 +545,40 @@ function fpCargarImagen(file){
   });
 }
 function fpMarcar(img, texto){
+  return fpRender_(img, texto, 2000, 0.85);
+}
+function fpOriginal(img){
+  return fpRender_(img, null, 4000, 0.92);
+}
+function fpRender_(img, texto, maxLado, calidad){
   const c = document.createElement('canvas');
-  const escala = Math.min(1, 2000 / Math.max(img.width, img.height));
+  const escala = Math.min(1, maxLado / Math.max(img.width, img.height));
   c.width = Math.round(img.width * escala);
   c.height = Math.round(img.height * escala);
   const ctx = c.getContext('2d');
   ctx.drawImage(img, 0, 0, c.width, c.height);
-  const fs = Math.round(Math.min(c.width, c.height) * 0.06);
-  ctx.font = '700 ' + fs + 'px Arial';
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
-  ctx.strokeStyle = 'rgba(0,0,0,0.18)';
-  ctx.lineWidth = Math.max(1, fs/28);
-  ctx.textAlign = 'center';
-  ctx.save();
-  ctx.translate(c.width/2, c.height/2);
-  ctx.rotate(-Math.PI/6);
-  const paso = fs * 3.2;
-  const ancho = ctx.measureText(texto).width + fs*2;
-  for(let y=-c.height; y<c.height; y+=paso){
-    const off = (Math.round(y/paso)%2) ? ancho/2 : 0;
-    for(let x=-c.width; x<c.width; x+=ancho){
-      ctx.strokeText(texto, x+off, y);
-      ctx.fillText(texto, x+off, y);
+  if(texto){
+    const fs = Math.round(Math.min(c.width, c.height) * 0.06);
+    ctx.font = '700 ' + fs + 'px Arial';
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+    ctx.lineWidth = Math.max(1, fs/28);
+    ctx.textAlign = 'center';
+    ctx.save();
+    ctx.translate(c.width/2, c.height/2);
+    ctx.rotate(-Math.PI/6);
+    const paso = fs * 3.2;
+    const ancho = ctx.measureText(texto).width + fs*2;
+    for(let y=-c.height; y<c.height; y+=paso){
+      const off = (Math.round(y/paso)%2) ? ancho/2 : 0;
+      for(let x=-c.width; x<c.width; x+=ancho){
+        ctx.strokeText(texto, x+off, y);
+        ctx.fillText(texto, x+off, y);
+      }
     }
+    ctx.restore();
   }
-  ctx.restore();
-  return new Promise(res=>c.toBlob(res, 'image/jpeg', 0.85));
+  return new Promise(res=>c.toBlob(res, 'image/jpeg', calidad));
 }
 function fpBlobABase64(blob){
   return new Promise((res,rej)=>{
@@ -592,14 +600,16 @@ async function fpProcesar(){
     $('fpProg').value = (i/fpArchivos.length)*100;
     try{
       const img = await fpCargarImagen(fpArchivos[i]);
-      const blob = await fpMarcar(img, texto);
-      const b64 = await fpBlobABase64(blob);
+      const blobMarca = await fpMarcar(img, texto);
+      const blobOrig = await fpOriginal(img);
+      const b64 = await fpBlobABase64(blobMarca);
+      const b64Orig = await fpBlobABase64(blobOrig);
       const nombre = fpArchivos[i].name.replace(/\.[^.]+$/, '') + '.jpg';
-      const d = await apiPost({action:'fotografo', pin:adminPin, op:'subirfoto', folderId, nombre, base64:b64, mime:'image/jpeg'});
+      const d = await apiPost({action:'fotografo', pin:adminPin, op:'subirfoto', folderId, nombre, base64:b64, base64Original:b64Orig, mime:'image/jpeg'});
       if(d.ok){
         subidas++;
         const th = document.createElement('img');
-        th.src = URL.createObjectURL(blob);
+        th.src = URL.createObjectURL(blobMarca);
         $('fpPreview').appendChild(th);
       } else errores++;
     }catch(e){ errores++; console.error(e); }
@@ -623,9 +633,11 @@ function pintarAdmin(d){
       <p><b class="mono">${p.id}</b> · <span class="estado-pill e-${p.estado}">${p.estado}</span></p>
       <p class="aviso" style="margin:6px 0">${p.nombre} · ${p.tel}<br>${p.partido} · <span class="mono">${p.codigos}</span><br>Total <b>${fmt(p.total)}</b></p>
       ${p.comprobante? `<a href="${p.comprobante}" target="_blank" class="aviso warn">Ver comprobante ↗</a>`:'<span class="aviso err">Sin comprobante</span>'}
-      <div style="display:flex;gap:8px;margin-top:10px">
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         ${p.estado==='Pendiente'? `<button class="btn btn-dorado" onclick="cambiarEstado(${p.fila},'Pagado')">✓ Marcar Pagado</button>`:''}
-        ${p.estado==='Pagado'? `<button class="btn btn-borde" onclick="entregar(${p.fila})">📦 Entregar (link)</button>`:''}
+        ${p.estado==='Pagado'? `<button class="btn btn-dorado" onclick="entregarWA(${p.fila})">📲 Entregar por WhatsApp</button>
+        <button class="btn btn-borde" onclick="entregar(${p.fila})">Link manual</button>`:''}
+        ${p.estado==='Entregado' && p.link? `<a class="btn btn-borde" href="${p.link}" target="_blank">Ver carpeta de entrega</a>`:''}
       </div>
     </div>`;
   }).join('');
@@ -641,6 +653,22 @@ async function cambiarEstado(fila, estado, link){
 function entregar(fila){
   const link = prompt('Pegá el link de Drive con las fotos SIN marca de agua para este pedido:');
   if(link) cambiarEstado(fila, 'Entregado', link);
+}
+async function entregarWA(fila){
+  if(!confirm('Se arma la carpeta con las fotos en alta calidad y se abre WhatsApp con el mensaje listo. ¿Entregar?')) return;
+  const d = await apiPost({action:'admin', pin:adminPin, op:'entregar', fila});
+  if(!d.ok) return alert(d.error||'Error al armar la entrega');
+  if(d.faltantes > 0){
+    alert('⚠️ Ojo: ' + d.faltantes + ' foto(s) no tenían original en la bóveda (fotos subidas con el sistema viejo). Para esas se entregó la versión con marca — pedile las originales al fotógrafo.');
+  }
+  let tel = String(d.tel||'').replace(/\D/g,'');
+  if(tel && !tel.startsWith('54')) tel = '549' + tel;
+  const msg = encodeURIComponent(
+    `¡Hola ${d.nombre}! 🏀📸\n\nAcá están tus fotos del partido en alta calidad, sin marca de agua:\n\n${d.url}\n\nCódigos: ${d.codigos}\n\n¡Gracias por tu compra! — SC Básquet, Club Independiente de Tandil`
+  );
+  window.open('https://wa.me/' + tel + '?text=' + msg, '_blank');
+  const l = await apiPost({action:'admin', pin:adminPin, op:'listar'});
+  if(l.ok) pintarAdmin(l);
 }
 
 /* ---------- admin: tabs ---------- */
