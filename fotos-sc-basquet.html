@@ -5,70 +5,103 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Fotos · SC Básquet</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --negro:#171315; --carbon:#221C1F; --humo:#2E262A;
-  --rojo:#D31A2B; --dorado:#E0A526; --crema:#F5EFE6; --gris:#9C9297;
+  --tinta:#131015; --carbon:#1E181C; --humo:#352B31; --humo2:#4A3C43;
+  --rojo:#E31B32; --rojo-osc:#7E0F1E; --dorado:#F2B12E; --dorado-osc:#8A6210;
+  --crema:#F8F2E7; --gris:#A2969C; --verde:#61C57C; --azul:#6BB8FF;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
-body{background:var(--negro);color:var(--crema);font-family:'Inter',sans-serif;font-size:15px;padding-bottom:86px;min-height:100vh}
-h1,h2,.display{font-family:'Archivo Black',sans-serif;letter-spacing:.5px}
+body{background:var(--tinta);color:var(--crema);font-family:'Inter',sans-serif;font-size:15px;padding-bottom:92px;min-height:100vh}
+.display{font-family:'Anton',sans-serif;letter-spacing:.03em}
 .mono{font-family:'JetBrains Mono',monospace}
+:focus-visible{outline:2px solid var(--dorado);outline-offset:2px}
 
-/* Header */
-header{background:linear-gradient(105deg,var(--rojo) 0 46%,var(--negro) 46.5% 100%);padding:20px 18px 16px;border-bottom:3px solid var(--dorado)}
-header h1{font-size:21px;line-height:1.1;text-transform:uppercase}
-header p{font-size:11px;color:var(--dorado);letter-spacing:2px;text-transform:uppercase;margin-top:4px;font-weight:600}
+/* ===== Header: banderín de noche de partido ===== */
+header{
+  position:relative;overflow:hidden;
+  background:
+    radial-gradient(120% 160% at 8% -30%, #2A0810 0%, transparent 55%),
+    linear-gradient(112deg, var(--rojo-osc) 0%, var(--rojo) 38%, #1A1216 38.4%, var(--tinta) 100%);
+  padding:24px 20px 18px;
+  border-bottom:3px solid var(--dorado);
+}
+header::before{ /* líneas de cancha */
+  content:'';position:absolute;inset:0;pointer-events:none;opacity:.13;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 140'%3E%3Cg fill='none' stroke='%23F8F2E7' stroke-width='1.4'%3E%3Ccircle cx='330' cy='70' r='34'/%3E%3Ccircle cx='330' cy='70' r='5'/%3E%3Cpath d='M400 12 A96 96 0 0 0 400 128'/%3E%3Cline x1='330' y1='0' x2='330' y2='140' stroke-dasharray='3 5'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right -10px center;background-size:auto 150%;
+}
+header h1{font-family:'Anton',sans-serif;font-size:30px;line-height:1;text-transform:uppercase;letter-spacing:.04em;position:relative;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+header h1 b{color:var(--dorado);font-weight:400}
+header p{font-size:10.5px;color:var(--dorado);letter-spacing:.24em;text-transform:uppercase;margin-top:7px;font-weight:700;position:relative}
 
-.wrap{padding:16px;max-width:640px;margin:0 auto}
-.card{background:var(--carbon);border:1px solid var(--humo);border-radius:14px;padding:16px;margin-bottom:14px}
-.card h2{font-size:15px;text-transform:uppercase;color:var(--dorado);margin-bottom:12px}
-label{display:block;font-size:12px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:1px;margin:10px 0 5px}
-input,select,textarea{width:100%;background:var(--negro);border:1.5px solid var(--humo);border-radius:10px;color:var(--crema);padding:12px;font-size:16px;font-family:'Inter'}
-input:focus,select:focus{outline:2px solid var(--dorado);border-color:var(--dorado)}
-.btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter';text-align:center;text-decoration:none}
-.btn-rojo{background:var(--rojo);color:#fff}
-.btn-dorado{background:var(--dorado);color:var(--negro)}
-.btn-borde{background:transparent;border:1.5px solid var(--humo);color:var(--crema)}
-.btn:active{transform:scale(.98)}
+.wrap{padding:18px 16px;max-width:640px;margin:0 auto}
+
+/* ===== Tarjetas ===== */
+.card{background:var(--carbon);border:1px solid var(--humo);border-radius:16px;padding:18px 16px;margin-bottom:14px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+.card h2{font-family:'Anton',sans-serif;font-weight:400;font-size:15px;letter-spacing:.09em;text-transform:uppercase;color:var(--crema);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.card h2::before{content:'';width:16px;height:3px;background:var(--dorado);border-radius:2px;flex:none}
+label{display:block;font-size:11px;font-weight:800;color:var(--gris);text-transform:uppercase;letter-spacing:.12em;margin:12px 0 6px}
+input,select,textarea{width:100%;background:var(--tinta);border:1.5px solid var(--humo);border-radius:11px;color:var(--crema);padding:13px;font-size:16px;font-family:'Inter';transition:border-color .15s}
+input:focus,select:focus{outline:none;border-color:var(--dorado);box-shadow:0 0 0 3px rgba(242,177,46,.18)}
+select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%23F2B12E' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:38px}
+
+/* ===== Botones ===== */
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:15px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Inter';text-align:center;text-decoration:none;transition:transform .1s, filter .15s}
+.btn-rojo{background:linear-gradient(160deg,var(--rojo) 0%,#B8142A 100%);color:#fff;font-family:'Anton';font-weight:400;letter-spacing:.09em;text-transform:uppercase;font-size:16px;box-shadow:0 4px 14px rgba(227,27,50,.32)}
+.btn-dorado{background:linear-gradient(160deg,var(--dorado) 0%,#D99A18 100%);color:#241A08;box-shadow:0 4px 14px rgba(242,177,46,.25)}
+.btn-borde{background:transparent;border:1.5px solid var(--humo2);color:var(--crema)}
+.btn:active{transform:scale(.97)}
+.btn:hover{filter:brightness(1.06)}
 .btn[disabled]{opacity:.4;pointer-events:none}
-.chip{display:inline-block;background:var(--humo);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:600;margin:2px}
-.aviso{font-size:13px;color:var(--gris);line-height:1.5}
-.ok{color:#5FBF77}.warn{color:var(--dorado)}.err{color:#FF6B6B}
+.chip{display:inline-block;background:var(--tinta);border:1px solid var(--humo2);border-left:3px solid var(--dorado);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;margin:3px;cursor:pointer}
+.aviso{font-size:13px;color:var(--gris);line-height:1.55}
+.ok{color:var(--verde)}.warn{color:var(--dorado)}.err{color:#FF6B6B}
 
-/* Galería */
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.foto{position:relative;border-radius:12px;overflow:hidden;border:2px solid var(--humo);aspect-ratio:1;background:var(--carbon);cursor:pointer}
+/* ===== Galería: credenciales de prensa ===== */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.foto{position:relative;border-radius:13px;overflow:hidden;border:2px solid var(--humo);aspect-ratio:1;background:var(--carbon);cursor:pointer;transition:transform .15s, border-color .15s, box-shadow .15s}
+.foto:active{transform:scale(.97)}
 .foto img{width:100%;height:100%;object-fit:cover;display:block}
-.foto .cod{position:absolute;left:0;bottom:0;right:0;background:linear-gradient(transparent,rgba(23,19,21,.92) 40%);padding:16px 8px 6px;font-size:12px;color:var(--dorado)}
-.foto.sel{border-color:var(--dorado)}
-.foto.sel::after{content:'✓';position:absolute;top:6px;right:6px;width:26px;height:26px;background:var(--dorado);color:var(--negro);border-radius:99px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+.foto .cod{position:absolute;left:0;bottom:0;right:0;background:linear-gradient(transparent,rgba(15,11,13,.94) 45%);padding:20px 9px 7px;font-size:11.5px;font-weight:700;color:var(--dorado);letter-spacing:.05em;display:flex;align-items:center;gap:6px}
+.foto .cod::before{content:'';width:7px;height:7px;background:var(--dorado);border-radius:2px;flex:none;opacity:.9}
+.foto.sel{border-color:var(--dorado);box-shadow:0 0 0 3px rgba(242,177,46,.28), 0 6px 16px rgba(0,0,0,.4)}
+.foto.sel::after{content:'✓';position:absolute;top:7px;right:7px;width:27px;height:27px;background:var(--dorado);color:#241A08;border-radius:99px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
 
-/* Nav inferior */
-nav{position:fixed;left:0;right:0;bottom:0;background:var(--carbon);border-top:2px solid var(--rojo);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;background:none;border:0;color:var(--gris);padding:10px 4px 12px;font-size:11px;font-weight:700;font-family:'Inter';cursor:pointer;text-transform:uppercase;letter-spacing:.5px}
+/* ===== Nav inferior ===== */
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(24,18,21,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--humo);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+nav button{position:relative;flex:1;background:none;border:0;color:var(--gris);padding:11px 4px 12px;font-size:10.5px;font-weight:800;font-family:'Inter';cursor:pointer;text-transform:uppercase;letter-spacing:.08em;transition:color .15s}
 nav button.on{color:var(--dorado)}
-nav .ico{display:block;font-size:19px;margin-bottom:3px}
-.badge{position:absolute;transform:translate(14px,-4px);background:var(--rojo);color:#fff;border-radius:99px;font-size:10px;min-width:17px;height:17px;line-height:17px;display:inline-block}
+nav button.on::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:30px;height:3px;background:var(--dorado);border-radius:0 0 4px 4px}
+nav .ico{display:block;font-size:20px;margin-bottom:3px}
+.badge{position:absolute;transform:translate(13px,-4px);background:var(--rojo);color:#fff;border-radius:99px;font-size:10px;font-weight:800;min-width:17px;height:17px;line-height:17px;display:inline-block;box-shadow:0 0 0 2px var(--tinta)}
 
-.pantalla{display:none}.pantalla.on{display:block}
-.total-bar{position:fixed;left:0;right:0;bottom:64px;background:var(--dorado);color:var(--negro);padding:12px 18px;display:none;justify-content:space-between;align-items:center;font-weight:800;z-index:49;cursor:pointer}
+/* ===== Pantallas + marcador ===== */
+.pantalla{display:none}
+.pantalla.on{display:block;animation:aparecer .25s ease-out}
+@keyframes aparecer{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.total-bar{position:fixed;left:12px;right:12px;bottom:72px;background:#0F0B0D;color:var(--crema);border:1px solid var(--dorado-osc);border-left:4px solid var(--rojo);border-radius:12px;padding:13px 16px;display:none;justify-content:space-between;align-items:center;z-index:49;cursor:pointer;box-shadow:0 10px 26px rgba(0,0,0,.5)}
 .total-bar.on{display:flex}
+.total-bar span:first-child{font-family:'JetBrains Mono';font-weight:700;color:var(--dorado);font-size:14.5px}
+.total-bar span:last-child{font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.06em}
 .spinner{border:3px solid var(--humo);border-top-color:var(--dorado);border-radius:99px;width:34px;height:34px;margin:30px auto;animation:g .8s linear infinite}
 @keyframes g{to{transform:rotate(360deg)}}
-.estado-pill{display:inline-block;padding:5px 12px;border-radius:99px;font-size:12px;font-weight:800;text-transform:uppercase}
-.e-Pendiente{background:#4a3a10;color:var(--dorado)}
-.e-Pagado{background:#14381f;color:#5FBF77}
-.e-Entregado{background:#15303f;color:#6BB8FF}
+.estado-pill{display:inline-block;padding:5px 13px;border-radius:99px;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.e-Pendiente{background:rgba(242,177,46,.14);color:var(--dorado);border:1px solid rgba(242,177,46,.4)}
+.e-Pagado{background:rgba(97,197,124,.13);color:var(--verde);border:1px solid rgba(97,197,124,.4)}
+.e-Entregado{background:rgba(107,184,255,.12);color:var(--azul);border:1px solid rgba(107,184,255,.4)}
+.e-Esperando{background:rgba(162,150,156,.12);color:var(--gris);border:1px solid rgba(162,150,156,.35)}
 table{width:100%;border-collapse:collapse;font-size:13px}
 td{padding:6px 4px;border-bottom:1px solid var(--humo)}
 .liq{display:flex;gap:10px}
-.liq .card{flex:1;text-align:center;margin:0}
-.liq .num{font-family:'Archivo Black';font-size:19px;margin-top:4px}
-.fp-drop{border:2px dashed var(--humo);border-radius:14px;padding:28px 14px;text-align:center;color:var(--crema);cursor:pointer}
+.liq .card{flex:1;text-align:center;margin:0;padding:14px 10px}
+.liq .aviso{font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+.liq .num{font-family:'Anton';font-weight:400;font-size:22px;letter-spacing:.03em;margin-top:5px}
+.fp-drop{border:2px dashed var(--humo2);border-radius:14px;padding:30px 14px;text-align:center;color:var(--crema);cursor:pointer;transition:border-color .15s;background:rgba(0,0,0,.14)}
 .fp-drop:active{border-color:var(--dorado)}
+progress{border-radius:99px;overflow:hidden}
 @media(min-width:520px){.grid{grid-template-columns:repeat(3,1fr)}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -76,7 +109,7 @@ td{padding:6px 4px;border-bottom:1px solid var(--humo)}
 <body>
 
 <header>
-  <h1>Fotos de Partido</h1>
+  <h1>Fotos de <b>Partido</b></h1>
   <p>SC Básquet · Club Independiente de Tandil</p>
 </header>
 
