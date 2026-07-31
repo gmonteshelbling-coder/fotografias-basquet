@@ -71,6 +71,14 @@ select{appearance:none;-webkit-appearance:none;background-image:url("data:image/
 .foto .cod::before{content:'';width:7px;height:7px;background:var(--dorado);border-radius:2px;flex:none;opacity:.9}
 .foto.sel{border-color:var(--dorado);box-shadow:0 0 0 3px rgba(242,177,46,.28), 0 6px 16px rgba(0,0,0,.4)}
 .foto.sel::after{content:'✓';position:absolute;top:7px;right:7px;width:27px;height:27px;background:var(--dorado);color:#241A08;border-radius:99px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.lupa{position:absolute;top:6px;left:6px;width:30px;height:30px;border:0;border-radius:9px;background:rgba(15,11,13,.68);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.lupa:active{transform:scale(.9)}
+.visor{position:fixed;inset:0;background:rgba(8,5,7,.95);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.visor.on{display:flex;animation:aparecer .2s ease-out}
+.visor img{max-width:100%;max-height:82vh;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.visor .vcod{margin-top:14px;font-family:'JetBrains Mono';font-weight:700;color:var(--dorado);letter-spacing:.05em;font-size:15px}
+.visor .vcerrar{position:absolute;top:16px;right:16px;width:44px;height:44px;border:0;border-radius:99px;background:rgba(255,255,255,.12);color:#fff;font-size:22px;cursor:pointer}
+.visor .vsel{margin-top:16px;max-width:280px}
 
 /* ===== Nav inferior ===== */
 nav{position:fixed;left:0;right:0;bottom:0;background:rgba(24,18,21,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--humo);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
@@ -144,26 +152,14 @@ progress{border-radius:99px;overflow:hidden}
       <p class="aviso" id="packAviso"></p>
     </div>
     <div class="card">
-      <h2 id="mpHeaderTit">1 · Completá tus datos</h2>
+      <h2>Completá tus datos</h2>
       <label>Nombre y apellido</label><input id="fNombre" placeholder="Ej: Juan Pedro García">
       <label>Email</label><input id="fEmail" type="email" placeholder="Ej: juan@email.com">
       <label>Teléfono (WhatsApp)</label><input id="fTel" type="tel" placeholder="Ej: 249 4 123456">
       <p class="aviso" style="margin-top:8px" id="mpAviso"></p>
     </div>
     <button class="btn btn-rojo" id="btnEnviar" onclick="enviarPedido()">Ir a pagar</button>
-    <div id="mpFallback" style="display:none">
-      <div class="card">
-        <h2>Transferencia manual (MP no disponible)</h2>
-        <p class="aviso">Alias:</p>
-        <p class="mono" style="font-size:18px;color:var(--dorado);margin:6px 0" id="aliasTxt"></p>
-        <p class="aviso" id="titularTxt"></p>
-        <button class="btn btn-borde" style="margin-top:10px" onclick="copiarAlias()">Copiar alias</button>
-        <label style="margin-top:12px">Comprobante de la transferencia</label>
-        <input id="fComp" type="file" accept="image/*">
-      </div>
-      <button class="btn btn-dorado" id="btnTransf" onclick="enviarPedidoTransferencia()" style="display:none">Confirmar transferencia</button>
-    </div>
-    <p class="aviso" style="margin-top:10px;text-align:center">Al confirmar te damos un número de pedido para seguir el estado.</p>
+    <p class="aviso" style="margin-top:10px;text-align:center">Pago seguro con Mercado Pago. Al confirmar te damos un número de pedido para seguir el estado.</p>
   </div>
 </div>
 
@@ -279,7 +275,7 @@ progress{border-radius:99px;overflow:hidden}
       <div id="asec-config" style="display:none">
         <div class="card">
           <h2>Configuración de pagos (Mercado Pago)</h2>
-          <p class="aviso"><b>⚠️ IMPORTANTE:</b> Sin el token de MP, los pagos se harán por transferencia manual. <a href="https://www.mercadopago.com.ar/developers/panel/app" target="_blank" style="color:var(--dorado)">Obtener token →</a></p>
+          <p class="aviso">El token de MP es necesario para cobrar. <a href="https://www.mercadopago.com.ar/developers/panel/app" target="_blank" style="color:var(--dorado)">Obtener token →</a></p>
           <label>MP Access Token</label><input id="cfMpToken" type="password" placeholder="Pegá tu token aquí">
           <button class="btn btn-borde" style="margin-top:8px" onclick="toggleMpToken()">Mostrar/Ocultar</button>
         </div>
@@ -287,8 +283,6 @@ progress{border-radius:99px;overflow:hidden}
         <div class="card">
           <h2>Información de contacto y precios</h2>
           <label>Mail de alertas</label><input id="cfEmail" type="email">
-          <label>Alias Mercado Pago</label><input id="cfAlias">
-          <label>Titular de la cuenta</label><input id="cfTitular">
           <label>Precio por foto ($)</label><input id="cfPrecio" type="number" inputmode="numeric">
           <label>Precio pack 3 fotos ($)</label><input id="cfPack" type="number" inputmode="numeric">
           <label>Porcentaje para el club (%)</label><input id="cfPorc" type="number" inputmode="numeric" min="0" max="100">
@@ -310,6 +304,13 @@ progress{border-radius:99px;overflow:hidden}
 
 <div class="total-bar" id="totalBar" onclick="ir('pedido')">
   <span id="tbTxt"></span><span>Ver pedido →</span>
+</div>
+
+<div class="visor" id="visor">
+  <button class="vcerrar" onclick="cerrarFoto()" aria-label="Cerrar">✕</button>
+  <img id="visorImg" src="" alt="">
+  <div class="vcod" id="visorCod"></div>
+  <button class="btn btn-dorado vsel" id="visorBtn" onclick="toggleDesdeVisor()">Agregar a mi pedido</button>
 </div>
 
 <nav>
@@ -356,8 +357,6 @@ function ir(p){
     $('selPartido').innerHTML = '<option value="">— Elegí un partido —</option>' +
       d.partidos.map(p=>`<option value="${p.id}" data-nombre="${p.nombre}">${p.nombre}</option>`).join('');
     $('precios').innerHTML = `Precio: <b>${fmt(d.precioFoto)}</b> por foto · Pack 3 fotos: <b>${fmt(d.precioPack3)}</b>`;
-    $('aliasTxt').textContent = d.aliasMP;
-    $('titularTxt').textContent = 'Titular: ' + d.titularMP;
   }catch(e){
     $('selPartido').innerHTML = '<option>Error de conexión. Revisá la URL de la API.</option>';
   }
@@ -376,10 +375,36 @@ async function cargarFotos(){
   $('galeria').innerHTML = d.fotos.map(f=>`
     <div class="foto ${estaSel(f.id)?'sel':''}" id="f-${f.id}" onclick="toggleFoto('${f.id}','${f.codigo}','${nombrePartido.replace(/'/g,"\\'")}')">
       <img loading="lazy" src="https://drive.google.com/thumbnail?id=${f.id}&sz=w400" alt="Foto ${f.codigo}">
+      <button class="lupa" onclick="event.stopPropagation();verFoto('${f.id}','${f.codigo}')" aria-label="Ampliar">🔍</button>
       <div class="cod mono">${f.codigo}</div>
     </div>`).join('');
 }
 function estaSel(id){ return seleccion.some(s=>s.id===id); }
+
+/* ---------- visor ampliado ---------- */
+let visorActual = null;
+function verFoto(id, codigo){
+  visorActual = {id, codigo};
+  $('visorImg').src = `https://drive.google.com/thumbnail?id=${id}&sz=w1200`;
+  $('visorCod').textContent = codigo;
+  actualizarBotonVisor();
+  $('visor').classList.add('on');
+}
+function cerrarFoto(){ $('visor').classList.remove('on'); visorActual=null; }
+function actualizarBotonVisor(){
+  if(!visorActual) return;
+  const sel = estaSel(visorActual.id);
+  $('visorBtn').textContent = sel ? '✓ Quitar de mi pedido' : 'Agregar a mi pedido';
+  $('visorBtn').className = 'btn vsel ' + (sel ? 'btn-borde' : 'btn-dorado');
+}
+function toggleDesdeVisor(){
+  if(!visorActual) return;
+  const partido = $('selPartido').selectedOptions[0].dataset.nombre;
+  const i = seleccion.findIndex(s=>s.id===visorActual.id);
+  if(i>=0) seleccion.splice(i,1); else seleccion.push({id:visorActual.id, codigo:visorActual.codigo, partido});
+  const el = $('f-'+visorActual.id); if(el) el.classList.toggle('sel', i<0);
+  actualizarBadge(); actualizarBotonVisor();
+}
 function toggleFoto(id,codigo,partido){
   const i = seleccion.findIndex(s=>s.id===id);
   if(i>=0) seleccion.splice(i,1); else seleccion.push({id,codigo,partido});
@@ -413,23 +438,13 @@ function pintarPedido(){
   $('packAviso').textContent = (seleccion.length%3!==0 && falta<3) ? `💡 Agregando ${falta} foto${falta>1?'s':''} más entrás al precio de pack.` : '';
   $('mpAviso').innerHTML = '✓ Se va a abrir Mercado Pago para completar el pago de forma segura.';
 }
-function copiarAlias(){
-  navigator.clipboard.writeText(CFG.aliasMP).then(()=>alert('Alias copiado: '+CFG.aliasMP));
-}
-function leerArchivo(file){
-  return new Promise((res,rej)=>{
-    const r = new FileReader();
-    r.onload = ()=>res(r.result.split(',')[1]);
-    r.onerror = rej;
-    r.readAsDataURL(file);
-  });
-}
 async function enviarPedido(){
   const nombre = $('fNombre').value.trim(), email = $('fEmail').value.trim(), tel = $('fTel').value.trim();
   if(!seleccion.length) return alert('Elegí al menos una foto en la galería.');
   if(!nombre || !tel) return alert('Completá tu nombre y teléfono.');
   if(!email) return alert('Completá tu email.');
   $('btnEnviar').disabled = true; $('btnEnviar').textContent = 'Procesando…';
+  const ventana = window.open('', '_blank'); // abrir ya, para no ser bloqueado
   try{
     const d = await apiPost({
       action:'pedido', nombre, email, telefono:tel,
@@ -437,47 +452,19 @@ async function enviarPedido(){
       codigos: seleccion.map(s=>s.codigo),
       total: calcTotal()
     });
-    if(d.ok){
-      if(d.prefId){
-        // Flujo MP Checkout
-        window.location.href = 'https://mercadopago.com.ar/checkout/v1/redirect?pref_id=' + d.prefId;
-      } else {
-        // Flujo fallback: transferencia manual
-        alert('⚠️ MP no está configurado. Usá la transferencia manual.');
-        seleccion = []; actualizarBadge();
-        $('fNombre').value=''; $('fEmail').value=''; $('fTel').value='';
-        $('mpFallback').style.display='block';
-        $('btnTransf').style.display='block';
-        $('btnEnviar').style.display='none';
-        // Guardar el ID para usar después
-        window.currentPedidoId = d.pedidoId;
-      }
-    } else alert('Hubo un problema: ' + (d.error||'reintentá en un rato.'));
-  }catch(e){ alert('Error de conexión. Verificá tu internet y reintentá.'); }
-  $('btnEnviar').disabled = false; $('btnEnviar').textContent = 'Ir a pagar';
-}
-
-async function enviarPedidoTransferencia(){
-  const file = $('fComp').files[0];
-  if(!file) return alert('Subí la captura del comprobante.');
-  $('btnTransf').disabled = true; $('btnTransf').textContent = 'Enviando…';
-  try{
-    const b64 = await leerArchivo(file);
-    const d = await apiPost({
-      action:'pedido_transferencia',
-      pedidoId: window.currentPedidoId,
-      comprobanteBase64: b64, comprobanteMime: file.type
-    });
-    if(d.ok){
-      alert('✅ ¡Comprobante enviado!\n\nTu número de pedido es: ' + window.currentPedidoId);
+    if(d.ok && d.prefId){
+      const urlPago = 'https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=' + d.prefId;
+      if(ventana && !ventana.closed){ ventana.location = urlPago; }
+      else { window.location.href = urlPago; }
+      // limpiar carrito local
       seleccion = []; actualizarBadge();
-      $('fNombre').value=''; $('fEmail').value=''; $('fTel').value=''; $('fComp').value='';
-      $('mpFallback').style.display='none'; $('btnTransf').style.display='none';
-      $('btnEnviar').style.display='block'; $('cId').value = window.currentPedidoId;
-      ir('consultar'); consultar();
-    } else alert('Hubo un problema: ' + (d.error||'reintentá.'));
-  }catch(e){ alert('Error. Reintentá.'); }
-  $('btnTransf').disabled = false; $('btnTransf').textContent = 'Confirmar transferencia';
+      $('fNombre').value=''; $('fEmail').value=''; $('fTel').value='';
+    } else {
+      if(ventana) ventana.close();
+      alert('No se pudo generar el pago. Reintentá en un rato o escribinos.');
+    }
+  }catch(e){ if(ventana) ventana.close(); alert('Error de conexión. Verificá tu internet y reintentá.'); }
+  $('btnEnviar').disabled = false; $('btnEnviar').textContent = 'Ir a pagar';
 }
 
 /* ---------- consultar ---------- */
@@ -635,12 +622,22 @@ async function fpProcesar(){
   $('fpProg').value = 100;
   $('fpEstado').innerHTML = `<span class="ok">✓ ${subidas} foto${subidas!==1?'s':''} subida${subidas!==1?'s':''} al partido.</span>` +
     (errores ? ` <span style="color:#FF6B6B">${errores} con error — reintentá esas.</span>` : ' Ya se ven en la galería 🏀');
+  // Botón para avisar al grupo de padres
+  if(subidas > 0){
+    const nombrePartido = $('fpPartido').selectedOptions[0].textContent;
+    const linkApp = location.origin + location.pathname;
+    const msg = encodeURIComponent(
+      `📸🏀 ¡Ya están las fotos del partido *${nombrePartido}*!\n\nMiralas y encargá las que quieras acá:\n${linkApp}\n\nSC Básquet · Club Independiente de Tandil`
+    );
+    $('fpEstado').innerHTML += `<a class="btn btn-dorado" style="margin-top:12px" href="https://wa.me/?text=${msg}" target="_blank">📲 Avisar al grupo de padres</a>`;
+  }
   fpArchivos = []; $('fpInp').value=''; $('fpCuenta').textContent='';
   $('fpGo').disabled = true;
 }
 function pintarAdmin(d){
   ultimosPedidos = d.pedidos;
   ultimoPorcClub = d.porcentajeClub;
+  mesesLiquidados = String(d.liquidados||'').split(',').map(s=>s.trim()).filter(Boolean);
   const pc = d.porcentajeClub;
   let club=0, foto=0;
   const filas = d.pedidos.slice().reverse().map(p=>{
@@ -653,8 +650,7 @@ function pintarAdmin(d){
       ${p.comprobante? `<a href="${p.comprobante}" target="_blank" class="aviso warn">Ver comprobante ↗</a>`:'<span class="aviso err">Sin comprobante</span>'}
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         ${(p.estado==='Pendiente'||p.estado==='Esperando pago')? `<button class="btn btn-dorado" onclick="cambiarEstado(${p.fila},'Pagado')">✓ Marcar Pagado</button>`:''}
-        ${p.estado==='Pagado'? `<button class="btn btn-dorado" onclick="entregarWA(${p.fila})">📲 Entregar por WhatsApp</button>
-        <button class="btn btn-borde" onclick="entregar(${p.fila})">Link manual</button>`:''}
+        ${p.estado==='Pagado'? `<button class="btn btn-dorado" onclick="entregarWA(${p.fila})">📲 Entregar por WhatsApp</button>`:''}
         ${p.estado==='Entregado' && p.link? `<a class="btn btn-borde" href="${p.link}" target="_blank">Ver carpeta de entrega</a>`:''}
       </div>
     </div>`;
@@ -667,10 +663,6 @@ async function cambiarEstado(fila, estado, link){
   const d = await apiPost({action:'admin', pin:adminPin, op:'estado', fila, estado, link});
   if(d.ok){ const l = await apiPost({action:'admin', pin:adminPin, op:'listar'}); pintarAdmin(l); }
   else alert(d.error||'Error');
-}
-function entregar(fila){
-  const link = prompt('Pegá el link de Drive con las fotos SIN marca de agua para este pedido:');
-  if(link) cambiarEstado(fila, 'Entregado', link);
 }
 async function entregarWA(fila){
   if(!confirm('Se arma la carpeta con las fotos en alta calidad y se abre WhatsApp con el mensaje listo. ¿Entregar?')) return;
@@ -709,6 +701,7 @@ function adminTab(t){
 /* ---------- admin: contable ---------- */
 let ultimosPedidos = [];
 let ultimoPorcClub = 30;
+let mesesLiquidados = [];
 const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 function pintarContable(){
   const pagados = ultimosPedidos.filter(p=>p.estado==='Pagado'||p.estado==='Entregado');
@@ -732,16 +725,22 @@ function pintarContable(){
   $('ctClub').textContent = fmt(club);
   $('ctFotografo').textContent = fmt(total - club);
 
-  const filaTabla = (c1,c2,c3,c4)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--humo);font-size:13px">
-    <span style="flex:1">${c1}</span><span class="mono">${c2}</span><span class="mono ok">${c3}</span><span class="mono warn">${c4}</span></div>`;
-
   const mesesKeys = Object.keys(porMes).sort().reverse();
   $('ctMeses').innerHTML = mesesKeys.length
-    ? `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:11px;color:var(--gris);text-transform:uppercase;font-weight:700">
-        <span style="flex:1">Mes</span><span>Fotos</span><span>Club</span><span>Fotógr.</span></div>` +
-      mesesKeys.map(k=>{
+    ? mesesKeys.map(k=>{
         const m = porMes[k];
-        return filaTabla(m.label, m.fotos, fmt(m.club), fmt(m.total - m.club));
+        const liq = mesesLiquidados.includes(k);
+        return `<div style="padding:10px 0;border-bottom:1px solid var(--humo)">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <span style="font-weight:700">${m.label} ${liq?'<span class="estado-pill e-Pagado" style="margin-left:6px">Liquidado</span>':''}</span>
+            <span class="mono aviso">${m.fotos} fotos</span>
+          </div>
+          <div style="display:flex;gap:14px;margin-top:6px;font-size:13px">
+            <span>Club <b class="mono ok">${fmt(m.club)}</b></span>
+            <span>Fotógrafo <b class="mono warn">${fmt(m.total - m.club)}</b></span>
+          </div>
+          <button class="btn ${liq?'btn-borde':'btn-dorado'}" style="margin-top:8px;padding:9px" onclick="liquidarMes('${k}')">${liq?'↩ Reabrir mes':'✓ Marcar como liquidado'}</button>
+        </div>`;
       }).join('')
     : '<p class="aviso">Todavía no hay ventas confirmadas.</p>';
 
@@ -756,17 +755,23 @@ function pintarContable(){
       }).join('')
     : '<p class="aviso">Todavía no hay ventas confirmadas.</p>';
 }
+async function liquidarMes(k){
+  const d = await apiPost({action:'admin', pin:adminPin, op:'liquidar', mes:k});
+  if(!d.ok) return alert(d.error||'Error');
+  mesesLiquidados = String(d.liquidados||'').split(',').map(s=>s.trim()).filter(Boolean);
+  pintarContable();
+}
 
 /* ---------- admin: partidos ---------- */
 function htmlPartido(p){
+  const linkApp = location.origin + location.pathname;
   const msg = encodeURIComponent(
-    `Hola! Te paso el link para subir las fotos del partido *${p.nombre}* (SC Básquet):\n\n${p.url}\n\nSubí ahí las fotos CON marca de agua. Aparecen solas en la app. ¡Gracias!`
+    `📸🏀 ¡Ya están las fotos del partido *${p.nombre}*!\n\nMiralas y encargá las que quieras acá:\n${linkApp}\n\nSC Básquet · Club Independiente de Tandil`
   );
   return `<div class="card">
     <p><b>${p.nombre}</b></p>
     <div style="display:flex;gap:8px;margin-top:10px">
-      <a class="btn btn-dorado" href="https://wa.me/?text=${msg}" target="_blank">📲 Enviar al fotógrafo</a>
-      <button class="btn btn-borde" onclick="navigator.clipboard.writeText('${p.url}').then(()=>alert('Link copiado'))">Copiar link</button>
+      <a class="btn btn-dorado" href="https://wa.me/?text=${msg}" target="_blank">📲 Avisar a los padres</a>
     </div>
   </div>`;
 }
@@ -803,8 +808,7 @@ async function cargarConfig(){
   if(!d.ok) return alert(d.error||'Error');
   const c = d.config;
   $('cfMpToken').value = c.MP_ACCESS_TOKEN || ''; 
-  $('cfEmail').value = c.EMAIL_ADMIN; $('cfAlias').value = c.ALIAS_MP;
-  $('cfTitular').value = c.TITULAR_MP; $('cfPrecio').value = c.PRECIO_FOTO;
+  $('cfEmail').value = c.EMAIL_ADMIN; $('cfPrecio').value = c.PRECIO_FOTO;
   $('cfPack').value = c.PRECIO_PACK3; $('cfPorc').value = c.PORCENTAJE_CLUB;
   $('cfPin').value = c.PIN_ADMIN;
   $('cfPinFoto').value = c.PIN_FOTOGRAFO || '';
@@ -813,8 +817,6 @@ async function guardarConfig(){
   const config = {
     MP_ACCESS_TOKEN: $('cfMpToken').value.trim(),
     EMAIL_ADMIN: $('cfEmail').value.trim(),
-    ALIAS_MP: $('cfAlias').value.trim(),
-    TITULAR_MP: $('cfTitular').value.trim(),
     PRECIO_FOTO: Number($('cfPrecio').value),
     PRECIO_PACK3: Number($('cfPack').value),
     PORCENTAJE_CLUB: Number($('cfPorc').value),
@@ -826,10 +828,7 @@ async function guardarConfig(){
   if(d.ok){
     adminPin = config.PIN_ADMIN || adminPin;
     alert('✅ Configuración guardada. ' + (config.MP_ACCESS_TOKEN ? '✓ MP activado.' : '⚠️ MP no configurado'));
-    CFG.aliasMP = config.ALIAS_MP; CFG.titularMP = config.TITULAR_MP;
     CFG.precioFoto = config.PRECIO_FOTO; CFG.precioPack3 = config.PRECIO_PACK3;
-    $('aliasTxt').textContent = CFG.aliasMP;
-    $('titularTxt').textContent = 'Titular: ' + CFG.titularMP;
     $('precios').innerHTML = `Precio: <b>${fmt(CFG.precioFoto)}</b> por foto · Pack 3 fotos: <b>${fmt(CFG.precioPack3)}</b>`;
   } else alert(d.error||'Error al guardar');
 }
