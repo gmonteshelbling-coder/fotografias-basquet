@@ -158,6 +158,12 @@ progress{border-radius:99px;overflow:hidden}
       <label>Teléfono (WhatsApp)</label><input id="fTel" type="tel" placeholder="Ej: 249 4 123456">
       <p class="aviso" style="margin-top:8px" id="mpAviso"></p>
     </div>
+    <div class="card" style="border:1.5px solid var(--dorado)">
+      <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13.5px;line-height:1.5;color:var(--crema);text-transform:none;letter-spacing:normal;font-weight:400;margin:0">
+        <input type="checkbox" id="fConsent" style="width:20px;height:20px;margin-top:2px;flex-shrink:0;accent-color:var(--rojo)">
+        <span>Declaro ser <b>madre, padre o tutor/a</b> del/los menor/es que aparecen en las fotos que compro, y <b>autorizo</b> a SC Básquet a comercializarme estas imágenes. Las adquiero para <b>uso personal y familiar</b>, comprometiéndome a no publicarlas ni distribuirlas de forma que se identifique a otros menores sin autorización. <a href="#" onclick="verTerminos(event)" style="color:var(--dorado);font-weight:700">Ver términos</a>.</span>
+      </label>
+    </div>
     <button class="btn btn-rojo" id="btnEnviar" onclick="enviarPedido()">Ir a pagar</button>
     <p class="aviso" style="margin-top:10px;text-align:center">Pago seguro con Mercado Pago. Al confirmar te damos un número de pedido para seguir el estado.</p>
   </div>
@@ -438,11 +444,26 @@ function pintarPedido(){
   $('packAviso').textContent = (seleccion.length%3!==0 && falta<3) ? `💡 Agregando ${falta} foto${falta>1?'s':''} más entrás al precio de pack.` : '';
   $('mpAviso').innerHTML = '✓ Se va a abrir Mercado Pago para completar el pago de forma segura.';
 }
+function verTerminos(e){
+  if(e) e.preventDefault();
+  alert(
+    'TÉRMINOS DE USO — FOTOS SC BÁSQUET\n'+
+    'Club Independiente de Tandil\n'+
+    '——————————————\n\n'+
+    '1. Las fotografías se toman durante partidos de las categorías formativas y se ofrecen a las familias de los jugadores.\n\n'+
+    '2. Al comprar, declarás ser madre, padre o tutor/a legal del/los menor/es fotografiado/s, y autorizás a SC Básquet a comercializarte esas imágenes (art. 53 CCyC y art. 31 Ley 11.723).\n\n'+
+    '3. Las fotos se entregan para uso PERSONAL y FAMILIAR. No está permitido usarlas con fines comerciales ni publicarlas de modo que se identifique a otros menores sin autorización de sus familias.\n\n'+
+    '4. El club conserva las imágenes originales de forma privada y las entrega únicamente a la familia que las adquiere.\n\n'+
+    '5. Ante cualquier duda o pedido de baja de una imagen, escribinos y la retiramos.\n\n'+
+    'Gracias por acompañar al básquet formativo del club. 🏀'
+  );
+}
 async function enviarPedido(){
   const nombre = $('fNombre').value.trim(), email = $('fEmail').value.trim(), tel = $('fTel').value.trim();
   if(!seleccion.length) return alert('Elegí al menos una foto en la galería.');
   if(!nombre || !tel) return alert('Completá tu nombre y teléfono.');
   if(!email) return alert('Completá tu email.');
+  if(!$('fConsent').checked) return alert('Para continuar, marcá la casilla de autorización de uso de imagen.');
   $('btnEnviar').disabled = true; $('btnEnviar').textContent = 'Procesando…';
   const ventana = window.open('', '_blank'); // abrir ya, para no ser bloqueado
   try{
@@ -450,7 +471,8 @@ async function enviarPedido(){
       action:'pedido', nombre, email, telefono:tel,
       partido: seleccion[0].partido,
       codigos: seleccion.map(s=>s.codigo),
-      total: calcTotal()
+      total: calcTotal(),
+      consentimiento: 'SÍ · ' + new Date().toLocaleString('es-AR')
     });
     if(d.ok && d.prefId){
       const urlPago = 'https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=' + d.prefId;
